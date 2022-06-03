@@ -15,12 +15,13 @@ class Server {
     };
 
     start() {
-        mongoose.connect(this.mongodbURI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            // useFindAndModify: false, // unsupported option.
-            // useCreateIndex: true // unsupported
-        }, (err) => {
+        mongoose.connect(this.mongodbURI,
+            {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+                // useFindAndModify: false, // unsupported option.
+                // useCreateIndex: true // unsupported
+            }, (err) => {
             console.log('Attempting to connect to MongoDB.....');
 
             if(err) throw new Error(`An error has occured, unable to connect to MongoDB! => ${err}`);
@@ -32,7 +33,8 @@ class Server {
                 
                 // require('../../config/middlewares.js')(this.app);
         
-                fastify.register(require("../../routes/user.test.js"));
+                require("../config/routes.js")(fastify);
+                // fastify.register(require("../../routes/user.test.js"));
 
                 fastify.listen(process.env.FASTIFY_SERVER_PORT);
 

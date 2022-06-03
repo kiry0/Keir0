@@ -4,19 +4,39 @@ const userSchema = mongoose.Schema(
     {
         firstName:
             {
-                type: String,
-                required: true
+                type: String
+            },
+        middleName: 
+            {
+                type: String
             },
         lastName: 
             {
-                type: String,
-                required: true
+                type: String
             },
-        age: 
+        emailAddress: 
             {
-                type: String,
-                required: true
-            } 
+                type: String
+            },
+        username:
+            {
+                type: String
+            },
+        password: {
+            type: String
+        },
+        token:
+            {
+                type: String
+            },
+        permissionLevel: {
+            type: Number,
+            default: 1
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
     }
 );
 

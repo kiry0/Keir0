@@ -1,4 +1,4 @@
-const Server = require("./lib/classes/Server.test.js");
+const Server = require("./lib/classes/Server.js");
 
 require('dotenv').config(
     {
