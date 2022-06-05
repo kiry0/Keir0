@@ -7,6 +7,8 @@ const mongoose = require("mongoose")
         }
     );
 
+const Nodemailer = require("./Nodemailer.js");
+
 class Server {
     constructor({
         mongodbURI
@@ -39,7 +41,6 @@ class Server {
                 fastify.listen(process.env.FASTIFY_SERVER_PORT);
 
                 console.log('Successfully started the server!');
-
             } catch(err) {
                 throw new Error(`An error has occured, unable to start the server! => ${err}`);
             };

@@ -2,20 +2,25 @@ const User = require("../models/User.js");
 
 const { 
     register,
-    login
+    login,
+    verify
 } = require('../schemas/auth.js');
 
 const bcrypt = require("bcrypt")
     , crypto = require("crypto");
 
-function route(fastify, options, done) {
-    // TODO: Email verification.
+const Nodemailer = require("../lib/classes/Nodemailer.js");
+
+const nodemailer = new Nodemailer();
+
+async function route(fastify, options, done) {
     // TODO: Captcha.
     // TODO: Rate-limiting.
+
     fastify.post("/api/v1/test/auth/register", async (req, rep) => {
         try {
             await register.validateAsync(req.body);
-
+ 
             const {
                 firstName,
                 lastName,
@@ -34,7 +39,7 @@ function route(fastify, options, done) {
                 , permissionLevel = 1
                 , verificationCode = crypto.randomBytes(16).toString('hex');
 
-            const hashedVerificationCode = await bcrypt.hash(verificationCode, 16);
+            const hashedToken = await bcrypt.hash(token, 16);
 
             user = new User(
                 {
@@ -43,9 +48,9 @@ function route(fastify, options, done) {
                     emailAddress,
                     username,
                     password: hashedPassword,
-                    token,
+                    token: hashedToken,
                     permissionLevel,
-                    verificationCode: hashedVerificationCode
+                    verificationCode
                 }
             );
 
@@ -63,7 +68,16 @@ function route(fastify, options, done) {
             //     isLoggedIn: true,
             // };
 
-            rep.send(verificationCode);
+            nodemailer.sendMail({
+                from: "detercarlhansen@gmail.com",
+                to: emailAddress,
+                subject: "Verify your account.",
+                text: `You're one one step closer to being able to use our service, verify your account via the verification code: ${verificationCode}`
+            });
+
+            rep
+               .status(200)
+               .send(token);
         } catch(err) {
             if(err.isJoi === true) rep.status(422).send('Invalid Form Body!');
 
@@ -123,28 +137,25 @@ function route(fastify, options, done) {
     });
 
     fastify.post("/api/v1/test/auth/verify", async (req, rep) => {
-        const {
-            token 
-        } = req.headers;
-
-        const {
-            verificationCode
-        } = req.body;
-
-        // TODO: Input validation.
         try {
-            const user = await User.find({ token });
+            await verify.validateAsync(req.body);
+
+            const {
+                verificationCode
+            } = req.body;
+
+            const isVerificationCodeValid = await User.find({ verificationCode }) ? true : false;
+            
+            if(!isVerificationCodeValid) return rep.send(401); 
+            
+            const user = await User.find({ verificationCode });
 
             const doesUserExist = user ? true : false;
 
             if(!doesUserExist) return rep.send(404);
-    
-            const doesVerificationCodeMatch = await bcrypt.compare(verificationCode, user[0].verificationCode) ? true : false;
-    
-            if(!doesVerificationCodeMatch) return rep.send(401); 
 
             const updatedDoc = await User.findOneAndUpdate({
-                token
+                verificationCode
             }, {
                 'isVerified': true
             }, {

@@ -20,7 +20,12 @@ const login = joi.object({
     password: joi.string().min(9).required()
 });
 
+const verify = joi.object({
+    verificationCode: joi.string().required()
+});
+
 module.exports = {
     register,
-    login
+    login,
+    verify
 };
