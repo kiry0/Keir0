@@ -31,11 +31,22 @@ const userSchema = mongoose.Schema(
             },
         permissionLevel: {
             type: Number,
-            default: 1
+            default: 0
         },
         createdAt: {
             type: Date,
             default: Date.now
+        },
+        isVerified: {
+            type: Boolean,
+            enum: [
+                false,
+                true
+            ],
+            default: false
+        },
+        verificationCode: {
+            type: String
         }
     }
 );

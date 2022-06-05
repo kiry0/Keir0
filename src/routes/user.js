@@ -9,6 +9,9 @@ const bcrypt = require("bcrypt")
     , crypto = require("crypto");
 
 function route(fastify, options, done) {
+    // TODO: Email verification.
+    // TODO: Captcha.
+    // TODO: Rate-limiting.
     fastify.post("/api/v1/test/auth/register", async (req, rep) => {
         try {
             await register.validateAsync(req.body);
@@ -19,14 +22,19 @@ function route(fastify, options, done) {
                 emailAddress,
                 username,
                 password 
-            } = req.body,
-            hashedPassword = await bcrypt.hash(password, 16),
-            doesUserExist = await User.findOne({ $or:[{ emailAddress }, { username }]});
+            } = req.body;
+
+            const hashedPassword = await bcrypt.hash(password, 16);
+
+            const doesUserExist = await User.findOne({ $or:[{ emailAddress }, { username }]});
 
             if(doesUserExist) return rep.status(409).send('A user with that emailAddress/username is already registered!');
 
             const token = crypto.randomBytes(128).toString('hex')
-                , permissionLevel = 1;
+                , permissionLevel = 1
+                , verificationCode = crypto.randomBytes(16).toString('hex');
+
+            const hashedVerificationCode = await bcrypt.hash(verificationCode, 16);
 
             user = new User(
                 {
@@ -36,7 +44,8 @@ function route(fastify, options, done) {
                     username,
                     password: hashedPassword,
                     token,
-                    permissionLevel
+                    permissionLevel,
+                    verificationCode: hashedVerificationCode
                 }
             );
 
@@ -54,8 +63,7 @@ function route(fastify, options, done) {
             //     isLoggedIn: true,
             // };
 
-            rep.send(200);
-
+            rep.send(verificationCode);
         } catch(err) {
             if(err.isJoi === true) rep.status(422).send('Invalid Form Body!');
 
@@ -79,6 +87,7 @@ function route(fastify, options, done) {
 
             if(!user) return rep.send(404);
 
+            if(!user.isVerified) return rep.send(401);
             /* TODO: Sessions. */
             // const {
             //     firstName,
@@ -113,6 +122,43 @@ function route(fastify, options, done) {
         };
     });
 
+    fastify.post("/api/v1/test/auth/verify", async (req, rep) => {
+        const {
+            token 
+        } = req.headers;
+
+        const {
+            verificationCode
+        } = req.body;
+
+        // TODO: Input validation.
+        try {
+            const user = await User.find({ token });
+
+            const doesUserExist = user ? true : false;
+
+            if(!doesUserExist) return rep.send(404);
+    
+            const doesVerificationCodeMatch = await bcrypt.compare(verificationCode, user[0].verificationCode) ? true : false;
+    
+            if(!doesVerificationCodeMatch) return rep.send(401); 
+
+            const updatedDoc = await User.findOneAndUpdate({
+                token
+            }, {
+                'isVerified': true
+            }, {
+                new: true
+            }).exec();
+    
+            rep.status(200).send(updatedDoc);
+        } catch(err) {
+            console.error(err);
+        };
+    });
+    
+    // TODO: Delete/Ban user route.
+    
     done();
 };
 
