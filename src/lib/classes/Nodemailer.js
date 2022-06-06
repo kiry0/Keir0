@@ -14,8 +14,14 @@ class Nodemailer {
         );
     };
 
-    sendMail(mail) {
-        this.transporter.sendMail(mail);
+    async sendMail(mail) {
+        try {
+            await this.transporter.sendMail(mail);
+        } catch(error) {
+            if(error) console.error(error);
+
+            return;
+        };
     };
 };
 
