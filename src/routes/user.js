@@ -9,14 +9,17 @@ const {
 const bcrypt = require("bcrypt")
     , crypto = require("crypto");
 
-const Nodemailer = require("../lib/classes/Nodemailer.js");
+const Nodemailer = require("../lib/classes/Nodemailer.js")
+    , Messagebird = require("../lib/classes/Messagebird.js");
 
-const nodemailer = new Nodemailer();
+const nodemailer = new Nodemailer()
+    , messagebird = new Messagebird();
 
-async function route(fastify, options, done) {
+function route(fastify, options, done) {
     // TODO: Captcha.
-    // TODO: Rate-limiting.
-
+    // TODO: Rate-limiting/perms
+    // TODO: Diagnostic system
+    // TODO: Token authentication instead of sessions.
     fastify.post("/api/v1/test/auth/register", async (req, rep) => {
         try {
             await register.validateAsync(req.body);
@@ -25,17 +28,18 @@ async function route(fastify, options, done) {
                 firstName,
                 lastName,
                 emailAddress,
+                phoneNumber,
                 username,
                 password 
             } = req.body;
 
             const hashedPassword = await bcrypt.hash(password, 16);
 
-            const doesUserExist = await User.findOne({ $or:[{ emailAddress }, { username }]});
+            const doesUserExist = await User.findOne({ $or:[{ emailAddress }, { phoneNumber }, { username }]});
 
-            if(doesUserExist) return rep.status(409).send('A user with that emailAddress/username is already registered!');
+            if(doesUserExist) return rep.status(409).send('A user with that emailAddress/username/phoneNumber already exists!');
 
-            const token = crypto.randomBytes(128).toString('hex')
+            const token = crypto.randomBytes(64).toString('hex')
                 , permissionLevel = 1
                 , verificationCode = crypto.randomBytes(16).toString('hex');
 
@@ -46,6 +50,7 @@ async function route(fastify, options, done) {
                     firstName,
                     lastName,
                     emailAddress,
+                    phoneNumber,
                     username,
                     password: hashedPassword,
                     token: hashedToken,
@@ -54,7 +59,7 @@ async function route(fastify, options, done) {
                 }
             );
 
-            user.save();
+            await user.save();
 
             /* TODO: Sessions. */
             // req.session.user = {
@@ -68,11 +73,19 @@ async function route(fastify, options, done) {
             //     isLoggedIn: true,
             // };
 
-            nodemailer.sendMail({
+            await nodemailer.sendMail({
                 from: "detercarlhansen@gmail.com",
                 to: emailAddress,
                 subject: "Verify your account.",
                 text: `You're one one step closer to being able to use our service, verify your account via the verification code: ${verificationCode}`
+            });
+
+            await messagebird.sendMessage({
+                'originator': 'newsl',
+                'recipients': [
+                  `+45${ phoneNumber }`
+              ],
+                'body': `You're one one step closer to being able to use our service, verify your account via the verification code: ${verificationCode}`
             });
 
             rep
@@ -93,15 +106,17 @@ async function route(fastify, options, done) {
 
             const {
                 emailAddress,
+                phoneNumber,
                 username,
                 password
             } = req.body;
 
-            const user = (await User.find({ $or:[{ emailAddress }, { username }]}))[0];
+            const user = (await User.find({ $or:[{ emailAddress }, { phoneNumber }, { username }]}))[0];
 
             if(!user) return rep.send(404);
 
             if(!user.isVerified) return rep.send(401);
+
             /* TODO: Sessions. */
             // const {
             //     firstName,
@@ -144,11 +159,11 @@ async function route(fastify, options, done) {
                 verificationCode
             } = req.body;
 
-            const isVerificationCodeValid = await User.find({ verificationCode }) ? true : false;
+            const isVerificationCodeValid = await User.find({ verificationCode }) ? true : false; // 1.
             
-            if(!isVerificationCodeValid) return rep.send(401); 
+            if(!isVerificationCodeValid) return rep.send(401); /* 1., 2. can be combined into 1 lookup, would improve speed.*/
             
-            const user = await User.find({ verificationCode });
+            const user = await User.find({ verificationCode }); // 2.
 
             const doesUserExist = user ? true : false;
 
