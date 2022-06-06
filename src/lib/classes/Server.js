@@ -7,8 +7,6 @@ const mongoose = require("mongoose")
         }
     );
 
-const Nodemailer = require("./Nodemailer.js");
-
 class Server {
     constructor({
         mongodbURI
@@ -17,32 +15,30 @@ class Server {
     };
 
     start() {
-        mongoose.connect(this.mongodbURI,
-            {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                // useFindAndModify: false, // unsupported option.
-                // useCreateIndex: true // unsupported
-            }, (err) => {
-            console.log('Attempting to connect to MongoDB.....');
-
-            if(err) throw new Error(`An error has occured, unable to connect to MongoDB! => ${err}`);
-
-            console.log('Successfully connected to MongoDB!');
-
+        return new Promise(async (resolve, reject) => {
             try {
+                console.log('Attempting to connect to MongoDB.....');
+
+                await mongoose.connect(this.mongodbURI, {
+                    useNewUrlParser: true,
+                    useUnifiedTopology: true
+                });
+
+                console.log('Successfully connected to MongoDB!');
+
                 console.log('Attempting to start the server.....');
                 
-                // require('../../config/middlewares.js')(this.app);
-        
+                require("../config/plugins.js")(fastify);
+            
                 require("../config/routes.js")(fastify);
-                // fastify.register(require("../../routes/user.test.js"));
-
-                fastify.listen(process.env.FASTIFY_SERVER_PORT);
-
+    
+                await fastify.listen(process.env.FASTIFY_SERVER_PORT);
+    
                 console.log('Successfully started the server!');
-            } catch(err) {
-                throw new Error(`An error has occured, unable to start the server! => ${err}`);
+
+                resolve("Everything booted up smoothly you're good to go!");
+            } catch(error) {
+                if(error) reject(error);
             };
         });
     };
