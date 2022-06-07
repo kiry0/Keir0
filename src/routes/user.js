@@ -60,18 +60,6 @@ function route(fastify, options, done) {
 
             await user.save();
 
-            /* TODO: Sessions. */
-            // req.session.user = {
-            //     firstName,
-            //     lastName,
-            //     emailAddress,
-            //     username,
-            //     password: hashedPassword,
-            //     token,
-            //     permissionLevel,
-            //     isLoggedIn: true,
-            // };
-
             await nodemailer.sendMail({
                 from: "detercarlhansen@gmail.com",
                 to: emailAddress,
@@ -116,29 +104,9 @@ function route(fastify, options, done) {
 
             if(!user.isVerified) return rep.send(401);
 
-            /* TODO: Sessions. */
-            // const {
-            //     firstName,
-            //     lastName,
-            //     token,
-            //     permissionLevel,
-            // } = user;
-
             const doesPasswordMatch = await bcrypt.compare(password, user.password) ? true : false;
 
             if(!doesPasswordMatch) return rep.send(401); 
-
-            /* TODO: Sessions. */
-            // req.session.user = {
-            //     firstName,
-            //     lastName,
-            //     emailAddress: emailAddress || user.emailAddress,
-            //     username: username || user.username,
-            //     password,
-            //     token,
-            //     permissionLevel,
-            //     isLoggedIn: true,
-            // };
 
             rep.send(200);
         } catch(err) {
