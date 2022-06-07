@@ -33,17 +33,16 @@ function route(fastify, options, done) {
                 password 
             } = req.body;
 
-            const hashedPassword = await bcrypt.hash(password, 16);
-
             const doesUserExist = await User.findOne({ $or:[{ emailAddress }, { phoneNumber }, { username }]});
 
             if(doesUserExist) return rep.status(409).send('A user with that emailAddress/username/phoneNumber already exists!');
 
-            const token = crypto.randomBytes(64).toString('hex')
+            const token = crypto.randomBytes(32).toString('hex')
                 , permissionLevel = 1
                 , verificationCode = crypto.randomBytes(16).toString('hex');
 
-            const hashedToken = await bcrypt.hash(token, 16);
+            const hashedPassword = await bcrypt.hash(password, 8),
+            hashedToken = await bcrypt.hash(token, 8);
 
             user = new User(
                 {
@@ -90,7 +89,7 @@ function route(fastify, options, done) {
 
             rep
                .status(200)
-               .send(token);
+               .send(user);
         } catch(err) {
             if(err.isJoi === true) rep.status(422).send('Invalid Form Body!');
 
