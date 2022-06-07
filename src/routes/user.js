@@ -126,25 +126,30 @@ function route(fastify, options, done) {
                 verificationCode
             } = req.body;
 
-            const isVerificationCodeValid = await User.find({ verificationCode }) ? true : false; // 1.
-            
-            if(!isVerificationCodeValid) return rep.send(401); /* 1., 2. can be combined into 1 lookup, would improve speed.*/
-            
-            const user = await User.find({ verificationCode }); // 2.
+            const user = await User.find({ verificationCode });
 
             const doesUserExist = user ? true : false;
 
             if(!doesUserExist) return rep.send(404);
 
+            if(user.isVerified === true) return rep
+                                                   .status(409)
+                                                   .send("Your account is already verified!");
+
             const updatedDoc = await User.findOneAndUpdate({
                 verificationCode
             }, {
-                'isVerified': true
+                'isVerified': true,
+                $unset: {
+                    verificationCode: ""
+                }
             }, {
                 new: true
             }).exec();
-    
-            rep.status(200).send(updatedDoc);
+
+            rep
+               .status(200)
+               .send(updatedDoc);
         } catch(err) {
             console.error(err);
         };
