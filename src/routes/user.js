@@ -15,11 +15,11 @@ const Nodemailer = require("../lib/classes/Nodemailer.js")
 const nodemailer = new Nodemailer()
     , messagebird = new Messagebird();
 
+// TODO: Captcha.
+// TODO: Rate-limiting/perms
+// TODO: Diagnostic system
+// TODO: Token authentication instead of sessions.
 function route(fastify, options, done) {
-    // TODO: Captcha.
-    // TODO: Rate-limiting/perms
-    // TODO: Diagnostic system
-    // TODO: Token authentication instead of sessions.
     fastify.post("/api/v1/test/auth/register", async (req, rep) => {
         try {
             await register.validateAsync(req.body);
@@ -33,16 +33,22 @@ function route(fastify, options, done) {
                 password 
             } = req.body;
 
-            const doesUserExist = await User.findOne({ $or:[{ emailAddress }, { phoneNumber }, { username }]});
+            const doesUserExist = await User.findOne({ $or:[{ emailAddress }, { phoneNumber }, { username }]}) ? true : false;
 
-            if(doesUserExist) return rep.status(409).send('A user with that emailAddress/username/phoneNumber already exists!');
+            if(doesUserExist) return rep    
+                                        .status(409)
+                                        .send('A user with that emailAddress/username/phoneNumber already exists!');
 
-            const token = crypto.randomBytes(32).toString('hex')
+            const token = crypto
+                                .randomBytes(32)
+                                .toString('hex')
                 , permissionLevel = 1
-                , verificationCode = crypto.randomBytes(16).toString('hex');
+                , verificationCode = crypto
+                                           .randomBytes(16)
+                                           .toString('hex');
 
-            const hashedPassword = await bcrypt.hash(password, 8),
-            hashedToken = await bcrypt.hash(token, 8);
+            const hashedPassword = await bcrypt.hash(password, 8)
+                , hashedToken = await bcrypt.hash(token, 8);
 
             user = new User(
                 {
@@ -76,10 +82,12 @@ function route(fastify, options, done) {
             });
 
             rep
-               .status(200)
+               .status(201)
                .send(user);
         } catch(err) {
-            if(err.isJoi === true) rep.status(422).send('Invalid Form Body!');
+            if(err.isJoi === true) rep
+                                      .status(422)
+                                      .send('Invalid Form Body!');
 
             console.error(err);
 
