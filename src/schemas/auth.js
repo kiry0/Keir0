@@ -50,6 +50,7 @@ const login = joi.object({
 });
 
 const verify = joi.object({
+    token: joi.string().required(),
     verificationCode: joi.string().required()
 });
 

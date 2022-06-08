@@ -118,7 +118,9 @@ function route(fastify, options, done) {
 
             rep.send(200);
         } catch(err) {
-            if(err.isJoi === true) res.status(422).send('Invalid Form Body!');
+            if(err.isJoi === true) res
+                                      .status(422)
+                                      .send('Invalid Form Body!');
         
             console.error(err);
     
@@ -126,15 +128,17 @@ function route(fastify, options, done) {
         };
     });
 
+    // TODO: have the verification code be able to be verified via a link.
     fastify.post("/api/v1/test/auth/verify", async (req, rep) => {
         try {
             await verify.validateAsync(req.body);
 
             const {
+                token,
                 verificationCode
             } = req.body;
 
-            const user = await User.find({ verificationCode });
+            const user = (await User.find({ token }))[0];
 
             const doesUserExist = user ? true : false;
 
@@ -144,8 +148,14 @@ function route(fastify, options, done) {
                                                    .status(409)
                                                    .send("Your account is already verified!");
 
+            const isVerificationCodeValid = verificationCode === user.verificationCode ? true : false;
+            
+            if(!isVerificationCodeValid) return rep
+                                                   .status(401)
+                                                   .send("You provided an invalid verificationCode that wasn't tied to your account!")
+
             const updatedDoc = await User.findOneAndUpdate({
-                verificationCode
+                token
             }, {
                 'isVerified': true,
                 $unset: {
@@ -159,6 +169,9 @@ function route(fastify, options, done) {
                .status(200)
                .send(updatedDoc);
         } catch(err) {
+            if(err.isJoi === true) rep
+                                      .status(422)
+                                      .send('Invalid Form Body!');
             console.error(err);
         };
     });
