@@ -32,7 +32,9 @@ class Server {
             
                 require("../config/routes.js")(fastify);
     
-                await fastify.listen(process.env.FASTIFY_SERVER_PORT);
+                await fastify.listen({
+                    port: process.env.FASTIFY_SERVER_PORT || 3000
+                });
     
                 console.log('Successfully started the server!');
 

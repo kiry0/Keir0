@@ -7,6 +7,7 @@ const {
 } = require('../schemas/auth.js');
 
 const bcrypt = require("bcrypt")
+    , jwt = require("jsonwebtoken")
     , crypto = require("crypto");
 
 const Nodemailer = require("../lib/classes/Nodemailer.js")
@@ -33,24 +34,20 @@ function route(fastify, options, done) {
                 password 
             } = req.body;
 
-            const doesUserExist = await User.findOne({ $or:[{ emailAddress }, { phoneNumber }, { username }]}) ? true : false;
+            const doesUserAlreadyExist = await User.findOne({ $or:[{ emailAddress }, { phoneNumber }, { username }]}) ? true : false;
 
-            if(doesUserExist) return rep    
-                                        .status(409)
-                                        .send('A user with that emailAddress/username/phoneNumber already exists!');
+            if(doesUserAlreadyExist) return rep    
+                                               .status(409)
+                                               .send('A user with that emailAddress/username/phoneNumber already exists!');
 
-            const token = crypto
-                                .randomBytes(32)
-                                .toString('hex')
-                , permissionLevel = 1
+            const permissionLevel = 1
                 , verificationCode = crypto
                                            .randomBytes(16)
                                            .toString('hex');
 
-            const hashedPassword = await bcrypt.hash(password, 8)
-                , hashedToken = await bcrypt.hash(token, 8);
+            const hashedPassword = await bcrypt.hash(password, 8);
 
-            user = new User(
+            const user = await User.create(
                 {
                     firstName,
                     lastName,
@@ -58,13 +55,20 @@ function route(fastify, options, done) {
                     phoneNumber,
                     username,
                     password: hashedPassword,
-                    token: hashedToken,
                     permissionLevel,
                     verificationCode
                 }
             );
 
-            await user.save();
+            const token = jwt.sign({
+                user_id: user._id,
+                permissionLevel,
+                isLoggedIn: false
+            }, process.env.TOKEN_KEY, {
+                expiresIn: "2h"
+            });
+
+            user.token = token;
 
             await nodemailer.sendMail({
                 from: "detercarlhansen@gmail.com",
@@ -82,6 +86,10 @@ function route(fastify, options, done) {
             });
 
             rep
+               .setCookie("token", token, {
+                   path: "/",
+                   signed: true
+               })
                .status(201)
                .send(user);
         } catch(err) {
@@ -96,6 +104,7 @@ function route(fastify, options, done) {
     }); 
 
     fastify.post("/api/v1/test/auth/login", async (req, rep) => {
+        // TODO: check if a user is still logged in.
         try {
             await login.validateAsync(req.body);
 
@@ -113,10 +122,51 @@ function route(fastify, options, done) {
             if(!user.isVerified) return rep.send(401);
 
             const doesPasswordMatch = await bcrypt.compare(password, user.password) ? true : false;
-
+            
             if(!doesPasswordMatch) return rep.send(401); 
 
-            rep.send(200);
+            const cookies = req.cookies;
+            
+            // TODO: Refactor
+            if(cookies.token) {
+                const isTokenCookieValid = req.unsignCookie(cookies.token).valid;
+
+                if(!isTokenCookieValid) return rep
+                                                  .status(401)
+                                                  .send("Invalid cookie!");
+                
+                cookies.token = req.unsignCookie(cookies.token).value;
+
+                const isJwtValid = jwt.verify(cookies.token, process.env.TOKEN_KEY);
+
+                if(!isJwtValid) return rep
+                                          .status(401)
+                                          .send("Invalid jwt!");
+
+                const payload = jwt.decode(cookies.token);
+            
+                if(payload.isLoggedIn === true) return rep
+                                                          .status(401)
+                                                          .send("You're already logged in!");
+            };
+
+            const token = jwt.sign({
+                user_id: user._id,
+                permissionLevel: user.permissionLevel,
+                isLoggedIn: true
+            }, process.env.TOKEN_KEY, {
+                expiresIn: "2h"
+            });
+
+            user.token = token;
+
+            rep
+               .setCookie("token", token, {
+                   path: "/",
+                   signed: true
+               })
+               .status(200)
+               .send(user);
         } catch(err) {
             if(err.isJoi === true) res
                                       .status(422)
@@ -130,15 +180,14 @@ function route(fastify, options, done) {
 
     // TODO: have the verification code be able to be verified via a link.
     fastify.post("/api/v1/test/auth/verify", async (req, rep) => {
-        try {
+        try {   
             await verify.validateAsync(req.body);
 
             const {
-                token,
                 verificationCode
             } = req.body;
 
-            const user = (await User.find({ token }))[0];
+            const user = (await User.find({ verificationCode }))[0];
 
             const doesUserExist = user ? true : false;
 
@@ -148,14 +197,8 @@ function route(fastify, options, done) {
                                                    .status(409)
                                                    .send("Your account is already verified!");
 
-            const isVerificationCodeValid = verificationCode === user.verificationCode ? true : false;
-            
-            if(!isVerificationCodeValid) return rep
-                                                   .status(401)
-                                                   .send("You provided an invalid verificationCode that wasn't tied to your account!")
-
             const updatedDoc = await User.findOneAndUpdate({
-                token
+                verificationCode
             }, {
                 'isVerified': true,
                 $unset: {
@@ -176,8 +219,8 @@ function route(fastify, options, done) {
         };
     });
     
-    // TODO: Delete/Ban user route.
-    
+    // TODO: signout user route.
+
     done();
 };
 

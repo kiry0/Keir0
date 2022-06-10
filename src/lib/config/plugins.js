@@ -1,5 +1,9 @@
-const cors = require("@fastify/cors");
+const cookie = require("@fastify/cookie");
 
 module.exports = (fastify) => {
-    fastify.register(cors);
+    fastify
+           .register(cookie, {
+               secret: process.env.TOKEN_KEY,
+               httpOnly: false
+           });
 };
