@@ -13,9 +13,8 @@ const register = joi.object(
                          .email()
                          .lowercase(),
         phoneNumber: joi
-                        .string()
-                        .length(8)
-                        .pattern(/^\d+$/)
+                        .number()
+                        .min(8)
                         .when("emailAddress", {
                             is: "",
                             then: joi
@@ -36,7 +35,7 @@ const register = joi.object(
 
 const login = joi.object({
     emailAddress: joi.string().email().lowercase(),
-    phoneNumber: joi.string().length(8).pattern(/^\d+$/),
+    phoneNumber: joi.string().min(8).pattern(/^\d+$/),
     username: joi.string().min(4).when("emailAddress",
         { 
             is: "",

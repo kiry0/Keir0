@@ -49,7 +49,13 @@ const userSchema = mongoose.Schema(
             default: false
         },
         verificationCode: {
-            type: String
+            code: {
+                type: String
+            },
+            generatedAt: {
+                type: Date,
+                default: Date.now()
+            }
         }
     }
 );
