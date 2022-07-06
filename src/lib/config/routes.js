@@ -1,5 +1,5 @@
-const user = require("../../routes/user.js");
-const test = require("../../routes/test.js");
+const user = require("../../routes/auth.js");
+const test = require("../../routes/middleware.test.js");
 
 module.exports = (fastify) => {
     fastify

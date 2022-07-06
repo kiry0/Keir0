@@ -1,4 +1,4 @@
-const messagebird = require("messagebird")("XiGooKhJ2AYIRbJa8Jf3tRqvY");
+const messagebird = require("messagebird")(process.env.MESSAGEBIRD_API_KEY);
 
 class Messagebird {
     constructor() {

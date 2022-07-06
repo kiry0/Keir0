@@ -8,7 +8,7 @@ class Nodemailer {
                 port: 587,
                 auth: {
                     user: "detercarlhansen@gmail.com",
-                    pass: "txintxyjignlrhwv"
+                    pass: process.env.NODEMAILER_USER_PASSWORD
                 }
             }
         );
