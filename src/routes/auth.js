@@ -28,14 +28,14 @@ function route(fastify, options, done) {
                 firstName,
                 lastName,
                 emailAddress,
-                phoneNumber,
                 username,
+                phoneNumber,
                 password 
             } = req.body;
 
             const doesUserAlreadyExist = (await User.find({
                 $or: [{ emailAddress }, { phoneNumber }, { username }]
-            }))[0];
+            })) >= 1 ? true : false;
 
             if(doesUserAlreadyExist) return rep    
                                                .status(409)
@@ -63,14 +63,21 @@ function route(fastify, options, done) {
             );
 
             await nodemailer.sendMail({
-                from: "detercarlhansen@gmail.com",
+                from: "_auth.js@gmail.com",
                 to: emailAddress,
                 subject: "Verify your account.",
                 text: `You're one one step closer to being able to use our service, verify your account via the verification code: ${verificationCode}`
             });
 
+            // TODO:
+            // await messagebird.sendMessage({
+            //     originator: '_auth.js',
+            //     recipient: phoneNumber
+            //     body: `You're one one step closer to being able to use our service, verify your account via the verification code: ${verificationCode}`
+            // });
+
             await messagebird.sendMessage({
-                'originator': 'newsl',
+                'originator': '_auth.js',
                 'recipients': [
                   `+45${ phoneNumber }`
               ],
@@ -81,9 +88,9 @@ function route(fastify, options, done) {
                .status(201)
                .send("Successfully registered!");
         } catch(err) {
-            if(err.isJoi === true) rep
-                                      .status(422)
-                                      .send('Invalid Form Body!');
+            if(err.isJoi === true) return rep
+                                             .status(422)
+                                             .send(err.details[0].message);
 
             console.error(err);
 

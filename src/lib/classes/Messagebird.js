@@ -6,10 +6,10 @@ class Messagebird {
     };
 
     sendMessage(params) {
-        messagebird.messages.create(params, (error, response) => {
-            return new Promise((resolve, reject) => {
-                if(error) reject(error);
-                
+        return new Promise((resolve, reject) => {
+            messagebird.messages.create(params, (error, response) => {
+                if(error) return reject(error);
+
                 resolve(response);
             });
         });
