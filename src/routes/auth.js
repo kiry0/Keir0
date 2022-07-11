@@ -72,12 +72,7 @@ function route(fastify, options, done) {
                 }
             );
 
-            // await nodemailer.sendMail({
-            //     from: "_auth.js@gmail.com",
-            //     to: emailAddress,
-            //     subject: "Verify your account.",
-            //     text: `You're one one step closer to being able to use our service, verify your account via the verification code: ${verificationCode}`
-            // });
+            await nodemailer.sendVerificationCode(emailAddress, verificationCode);
 
             // TODO:
             // await messagebird.sendMessage({

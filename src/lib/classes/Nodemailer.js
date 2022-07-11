@@ -14,9 +14,28 @@ class Nodemailer {
         );
     };
 
-    async sendMail(mail) {
+    async sendMail(params) {
         try {
-            await this.transporter.sendMail(mail);
+            await this.transporter.sendMail(params);
+        } catch(error) {
+            if(error) console.error(error);
+
+            return;
+        };
+    };
+
+    async sendVerificationCode(recipientEmailAddress, verificationCode) {
+        const ORIGINATOR_EMAIL_ADDRESS = "_auth.js@gmail.com"; // Replace with company email address.
+        
+        const params = {
+            from: ORIGINATOR_EMAIL_ADDRESS,
+            to: recipientEmailAddress,
+            subject: "Verify your account.",
+            text: `We need to verify your identity, this verification code will expire in 24 hours: ${verificationCode}`
+        };
+
+        try {
+            await this.transporter.sendMail(params);
         } catch(error) {
             if(error) console.error(error);
 
