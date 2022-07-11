@@ -49,6 +49,7 @@ function route(fastify, options, done) {
 
             const hashedPassword = await bcrypt.hash(password, 8)
                 , permissionLevel = 1
+                // TODO: Add expiration.
                 , verificationCode = crypto
                                            .randomBytes(16)
                                            .toString('hex');
@@ -66,6 +67,7 @@ function route(fastify, options, done) {
                     username,
                     password: hashedPassword,
                     permissionLevel,
+                    // TODO: Add expiration.
                     verificationCode: {
                         code: verificationCode
                     }

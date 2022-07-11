@@ -6,16 +6,14 @@ const {
 const isValidPhoneNumber = (value, helpers) => {
     const {
         countryCallingCode,
-        nationalNumber
+        nationalNumber,
     } = value;
 
     value.number = `+${countryCallingCode}${nationalNumber}`;
 
-    const phoneNumber = value;
+    const phoneNumber = value.number;
 
-    const number = phoneNumber.number;
-
-    const isValidPhoneNumber = isValidNumber(number) || isPossiblePhoneNumber(number);
+    const isValidPhoneNumber = isValidNumber(phoneNumber) || isPossiblePhoneNumber(phoneNumber);
 
     if(!isValidPhoneNumber) return helpers.error("any.custom");
 
