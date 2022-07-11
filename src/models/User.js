@@ -2,22 +2,18 @@ const mongoose = require("mongoose");
 
 const userSchema = mongoose.Schema(
     {
-        firstName:
-            {
-                type: String
-            },
-        middleName: 
-            {
-                type: String
-            },
-        lastName: 
-            {
-                type: String
-            },
-        emailAddress: 
-            {
-                type: String
-            },
+        firstName: {
+            type: String
+        },
+        middleName: {
+            type: String
+        },
+        lastName: {
+            type: String
+        },
+        emailAddress: {
+            type: String
+        },
         phoneNumber: {
             countryCallingCode: {
                 type: Number,
@@ -29,17 +25,15 @@ const userSchema = mongoose.Schema(
                 type: String
             }
         },
-        username:
-            {
-                type: String
-            },
+        username: {
+            type: String
+        },
         password: {
             type: String
         },
-        token:
-            {
-                type: String
-            },
+        token: {
+            type: String
+        },
         permissionLevel: {
             type: Number,
             default: 0
@@ -48,21 +42,27 @@ const userSchema = mongoose.Schema(
             type: Date,
             default: Date.now
         },
-        isVerified: {
-            type: Boolean,
-            enum: [
-                false,
-                true
-            ],
-            default: false
-        },
-        verificationCode: {
-            code: {
-                type: String
+        verification: {
+            isVerified: {
+                type: Boolean,
+                enum: [
+                    false,
+                    true
+                ],
+                default: false
             },
-            generatedAt: {
-                type: Date,
-                default: Date.now()
+            code: {
+                value: {
+                    type: String
+                },
+                generatedAt: {
+                    type: Date,
+                    default: Date.now()
+                },
+                expiresAt: {
+                    type: Date,
+                    default: new Date(new Date().setHours(new Date().getHours() + 24)).getTime() // 24HRS.
+                }
             }
         }
     }

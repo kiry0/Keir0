@@ -1,9 +1,6 @@
-const user = require("../../routes/auth.js");
-const test = require("../../routes/middleware.test.js");
+const register = require("../../routes/auth/register.js");
 
 module.exports = (fastify) => {
     fastify
-           .register(user)
-           .register(test);
-
+           .register(register);
 };

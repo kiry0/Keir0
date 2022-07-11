@@ -10,6 +10,11 @@ const register = joi.object(
                       .min(1)
                       .max(64)
                       .required(),
+        middleName: joi
+                       .string()
+                       .min(1)
+                       .max(64)
+                       .required(),
         lastName: joi
                      .string()
                      .min(1)

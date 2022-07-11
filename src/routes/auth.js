@@ -1,14 +1,13 @@
-const { 
-    register,
+const {
     login,
     verify
 } = require('../schemas/auth.js');
 
 const User = require("../models/User.js");
 
-const bcrypt = require("bcrypt")
-    , jwt = require("jsonwebtoken")
-    , crypto = require("crypto");
+const bcrypt = require("bcryptjs")
+    , generateVerificationCode = require("../lib/functions/utils/generateVerificationCode.js")
+    , jwt = require("jsonwebtoken");
 
 const Nodemailer = require("../lib/classes/Nodemailer.js")
     , Messagebird = require("../lib/classes/Messagebird.js");
@@ -16,83 +15,8 @@ const Nodemailer = require("../lib/classes/Nodemailer.js")
 const nodemailer = new Nodemailer()
     , messagebird = new Messagebird();
 
-// TODO: Captcha.
-// TODO: Rate-limiting/perms
-// TODO: Diagnostic system
 function route(fastify, options, done) {
-    fastify.post("/api/v1/test/auth/register", async (req, rep) => {
-        try {
-            await register.validateAsync(req.body);
- 
-            const {
-                firstName,
-                lastName,
-                emailAddress,
-                username,
-                phoneNumber,
-                password 
-            } = req.body;
-
-            const doesUserAlreadyExist = (await User.find({
-                $or: [{ emailAddress }, { phoneNumber }, { username }]
-            })).length >= 1 ? true : false;
-            
-            if(doesUserAlreadyExist) return rep    
-                                               .status(409)
-                                               .send('A user with that emailAddress/username/phoneNumber already exists!');
-
-            const {
-                countryCallingCode,
-                nationalNumber,
-            } = phoneNumber
-                , number = `+${countryCallingCode}${nationalNumber}`;
-
-            const hashedPassword = await bcrypt.hash(password, 8)
-                , permissionLevel = 1
-                // TODO: Add expiration.
-                , verificationCode = crypto
-                                           .randomBytes(16)
-                                           .toString('hex');
-
-            await User.create(
-                {
-                    firstName,
-                    lastName,
-                    emailAddress,
-                    phoneNumber: {
-                        countryCallingCode,
-                        nationalNumber,
-                        number
-                    },
-                    username,
-                    password: hashedPassword,
-                    permissionLevel,
-                    // TODO: Add expiration.
-                    verificationCode: {
-                        code: verificationCode
-                    }
-                }
-            );
-
-            if(emailAddress) await nodemailer.sendVerificationCode(emailAddress, verificationCode);
-            
-            if(number) await messagebird.sendVerificationCode(number, verificationCode);
-
-            rep
-               .status(201)
-               .send("Successfully registered!");
-        } catch(err) {
-            if(err.isJoi === true) return rep
-                                             .status(422)
-                                             .send(err.details[0].message);
-
-            console.error(err);
-
-            rep.send(500);
-        };
-    }); 
-
-    fastify.post("/api/v1/test/auth/login", async (req, rep) => {
+     fastify.post("/api/v1/test/auth/login", async (req, rep) => {
         try {
             const cookies = req.cookies;
             
@@ -127,9 +51,9 @@ function route(fastify, options, done) {
                 password
             } = req.body;
 
-            const user = (await User.find({
+            const user = await User.findOne({
                 $or: [{ emailAddress }, { phoneNumber }, { username }]
-            }))[0];
+            });
 
             if(!user) return rep
                                 .status(404)
@@ -191,7 +115,7 @@ function route(fastify, options, done) {
                 verificationCode
             } = req.body;
 
-            const user = (await User.find({ "verificationCode.code": verificationCode }))[0];
+            const user = await User.findOne({ "verificationCode.code": verificationCode });
 
             const doesUserExist = user ? true : false;
 
