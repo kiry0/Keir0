@@ -33,15 +33,7 @@ function route(fastify, options, done) {
 
             const number = phoneNumber.number;
 
-            const doesUserAlreadyExist = await User.findOne({
-                $or: [{ emailAddress }, { "phoneNumber.number": number }, { username }]
-            }) ? true : false;
-            
-            if(doesUserAlreadyExist) return rep    
-                                               .status(409)
-                                               .send('A user with that emailAddress/username/phoneNumber already exists!');
-
-            const hashedPassword = await bcrypt.hash(password, 8)
+            const hashedPassword = bcrypt.hashSync(password, 8)
                 , verificationCode = generateVerificationCode();
 
             await User.create(
@@ -69,7 +61,7 @@ function route(fastify, options, done) {
             
             if(number) {
                 const messagebird = new Messagebird();
-                
+
                 await messagebird.sendVerificationCode(number, verificationCode);
             };
 
@@ -81,6 +73,10 @@ function route(fastify, options, done) {
                                              .status(422)
                                              .send(err.details[0].message);
 
+            if(err.name === "MongoServerError" && err.code === 11000) return rep
+                                                                          .status(409)
+                                                                          .send("A user with that emailAddress/username/phoneNumber already exists!");
+            
             console.error(err);
 
             rep.send(500);

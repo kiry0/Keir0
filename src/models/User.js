@@ -12,7 +12,8 @@ const userSchema = mongoose.Schema(
             type: String
         },
         emailAddress: {
-            type: String
+            type: String,
+            unique: true
         },
         phoneNumber: {
             countryCallingCode: {
@@ -22,11 +23,13 @@ const userSchema = mongoose.Schema(
                 type: Number
             },
             number: {
-                type: String
+                type: String,
+                unique: true
             }
         },
         username: {
-            type: String
+            type: String,
+            unique: true
         },
         password: {
             type: String
