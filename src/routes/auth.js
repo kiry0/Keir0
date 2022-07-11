@@ -72,22 +72,9 @@ function route(fastify, options, done) {
                 }
             );
 
-            await nodemailer.sendVerificationCode(emailAddress, verificationCode);
-
-            // TODO:
-            // await messagebird.sendMessage({
-            //     originator: '_auth.js',
-            //     recipient: phoneNumber
-            //     body: `You're one one step closer to being able to use our service, verify your account via the verification code: ${verificationCode}`
-            // });
-
-            // await messagebird.sendMessage({
-            //     'originator': '_auth.js',
-            //     'recipients': [
-            //       `+45${ phoneNumber }`
-            //   ],
-            //     'body': `You're one one step closer to being able to use our service, verify your account via the verification code: ${verificationCode}`
-            // });
+            if(emailAddress) await nodemailer.sendVerificationCode(emailAddress, verificationCode);
+            
+            if(number) await messagebird.sendVerificationCode(number, verificationCode);
 
             rep
                .status(201)
