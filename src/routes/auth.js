@@ -1,10 +1,10 @@
-const User = require("../models/User.js");
-
 const { 
     register,
     login,
     verify
 } = require('../schemas/auth.js');
+
+const User = require("../models/User.js");
 
 const bcrypt = require("bcrypt")
     , jwt = require("jsonwebtoken")
@@ -35,11 +35,17 @@ function route(fastify, options, done) {
 
             const doesUserAlreadyExist = (await User.find({
                 $or: [{ emailAddress }, { phoneNumber }, { username }]
-            })) >= 1 ? true : false;
-
+            })).length >= 1 ? true : false;
+            
             if(doesUserAlreadyExist) return rep    
                                                .status(409)
                                                .send('A user with that emailAddress/username/phoneNumber already exists!');
+
+            const {
+                countryCallingCode,
+                nationalNumber,
+            } = phoneNumber
+                , number = `+${countryCallingCode}${nationalNumber}`;
 
             const hashedPassword = await bcrypt.hash(password, 8)
                 , permissionLevel = 1
@@ -52,7 +58,11 @@ function route(fastify, options, done) {
                     firstName,
                     lastName,
                     emailAddress,
-                    phoneNumber,
+                    phoneNumber: {
+                        countryCallingCode,
+                        nationalNumber,
+                        number
+                    },
                     username,
                     password: hashedPassword,
                     permissionLevel,
@@ -62,12 +72,12 @@ function route(fastify, options, done) {
                 }
             );
 
-            await nodemailer.sendMail({
-                from: "_auth.js@gmail.com",
-                to: emailAddress,
-                subject: "Verify your account.",
-                text: `You're one one step closer to being able to use our service, verify your account via the verification code: ${verificationCode}`
-            });
+            // await nodemailer.sendMail({
+            //     from: "_auth.js@gmail.com",
+            //     to: emailAddress,
+            //     subject: "Verify your account.",
+            //     text: `You're one one step closer to being able to use our service, verify your account via the verification code: ${verificationCode}`
+            // });
 
             // TODO:
             // await messagebird.sendMessage({
@@ -76,13 +86,13 @@ function route(fastify, options, done) {
             //     body: `You're one one step closer to being able to use our service, verify your account via the verification code: ${verificationCode}`
             // });
 
-            await messagebird.sendMessage({
-                'originator': '_auth.js',
-                'recipients': [
-                  `+45${ phoneNumber }`
-              ],
-                'body': `You're one one step closer to being able to use our service, verify your account via the verification code: ${verificationCode}`
-            });
+            // await messagebird.sendMessage({
+            //     'originator': '_auth.js',
+            //     'recipients': [
+            //       `+45${ phoneNumber }`
+            //   ],
+            //     'body': `You're one one step closer to being able to use our service, verify your account via the verification code: ${verificationCode}`
+            // });
 
             rep
                .status(201)

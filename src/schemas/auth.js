@@ -1,6 +1,7 @@
 const joi = require('joi');
 
-const passwordStrength = require("../lib/functions/passwordStrength.js");
+const isValidPhoneNumber = require("../lib/functions/validation/isValidPhoneNumber.js")
+    , passwordStrength = require("../lib/functions/validation/passwordStrength.js");
 
 const register = joi.object(
     {
@@ -20,13 +21,15 @@ const register = joi.object(
                          .max(320)
                          .email()
                          .lowercase(),
-        // TODO: Proper phoneNumber validation for valid/invalid phone numbers.
         phoneNumber: joi
-                        .number()
                         .when("emailAddress", {
                             is: "",
                             then: joi
                                      .required()
+                        })
+                        .custom(isValidPhoneNumber, "phoneNumber")
+                        .messages({
+                            "any.custom": "Your phone number is invalid!"
                         }),
         username: joi
                      .string()
@@ -34,7 +37,13 @@ const register = joi.object(
                      .min(4)
                      .max(40)
                      .lowercase()
-                     .required(),
+                     .when("emailAddress", {
+                        is: "",
+                        then: joi.when("phoneNumber", {
+                            is: "",
+                            then: joi.required()
+                        })
+                     }),
         password: joi
                      .string()
                      .min(8)
@@ -47,19 +56,28 @@ const register = joi.object(
     }
 );
 
-// refactor: login/verify schema.
 const login = joi.object({
     emailAddress: joi
                      .string()
+                     .min(3)
+                     .max(320)
                      .email()
                      .lowercase(),
     phoneNumber: joi
-                    .string()
-                    .min(8)
-                    .pattern(/^\d+$/),
+                    .when("emailAddress", {
+                        is: "",
+                        then: joi   
+                                 .required()
+                    })
+                    .custom(isValidPhoneNumber, "phoneNumber")
+                    .messages({
+                        "any.custom": "Your phone number is invalid!"
+                    }),
     username: joi
                  .string()
+                 .alphanum()
                  .min(4)
+                 .max(40)
                  .when("emailAddress", { 
                      is: "",
                      then: joi.when("phoneNumber", {
@@ -75,6 +93,7 @@ const login = joi.object({
                  .required()
 });
 
+// refactor:
 const verify = joi.object({
     verificationCode: joi
                          .string()
