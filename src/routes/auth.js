@@ -6,7 +6,6 @@ const {
 const User = require("../models/User.js");
 
 const bcrypt = require("bcryptjs")
-    , generateVerificationCode = require("../lib/functions/utils/generateVerificationCode.js")
     , jwt = require("jsonwebtoken");
 
 const Nodemailer = require("../lib/classes/Nodemailer.js")
@@ -16,96 +15,6 @@ const nodemailer = new Nodemailer()
     , messagebird = new Messagebird();
 
 function route(fastify, options, done) {
-     fastify.post("/api/v1/test/auth/login", async (req, rep) => {
-        try {
-            const cookies = req.cookies;
-            
-            if(cookies.token) {
-                const isTokenCookieValid = req.unsignCookie(cookies.token).valid;
-
-                if(!isTokenCookieValid) return rep
-                                                  .status(401)
-                                                  .send("It looks like your cookie was tampered with while you're still logged in, to fix this you'll need to log out! :)");
-                
-                cookies.token = req.unsignCookie(cookies.token).value;
-
-                const isJwtValid = jwt.verify(cookies.token, process.env.TOKEN_KEY);
-
-                if(!isJwtValid) return rep
-                                          .status(401)
-                                          .send("It looks like your jwt was tampered with while you're still logged in, to fix this you'll need to log out! :)");
-
-                const payload = jwt.decode(cookies.token);
-            
-                if(payload.isLoggedIn === true) return rep
-                                                          .status(401)
-                                                          .send("You're already logged in!");
-            };
-
-            await login.validateAsync(req.body);
-
-            const {
-                emailAddress,
-                phoneNumber,
-                username,
-                password
-            } = req.body;
-
-            const user = await User.findOne({
-                $or: [{ emailAddress }, { phoneNumber }, { username }]
-            });
-
-            if(!user) return rep
-                                .status(404)
-                                .send("Unable to log you in! A user with that emailAddress/phoneNumber/username does not exist!");
-
-            if(!user.isVerified) return rep
-                                           .status(401)
-                                           .send("You must be verified to log in!");
-
-            const doesPasswordMatch = await bcrypt.compare(password, user.password) ? true : false;
-            
-            if(!doesPasswordMatch) return rep
-                                             .status(401)
-                                             .send("Incorrect password!"); 
-
-            const refreshToken = jwt.sign({
-                user_id: user._id,
-            }, process.env.TOKEN_KEY, {
-                expiresIn: 60 * 60 * 24 * 61 // 2MNTHS
-            })
-                , token = jwt.sign({
-                    user_id: user._id,
-                    permissionLevel: user.permissionLevel,
-                    isLoggedIn: true
-                }, process.env.TOKEN_KEY, {
-                    expiresIn: 60 * 60 * 2 // 2HRS
-                });
-
-            rep
-                .setCookie("refreshToken", refreshToken, {
-                    path: "/",
-                    signed: true,
-                    maxAge: 60 * 60 * 24 * 61 // 2MNTHS
-                })
-               .setCookie("token", token, {
-                   path: "/",
-                   signed: true,
-                   maxAge: 60 * 60 * 2 // 2HRS
-               })
-               .status(200)
-               .send("Successfully logged in!");
-        } catch(err) {
-            if(err.isJoi === true) res
-                                      .status(422)
-                                      .send('Invalid Form Body!');
-        
-            console.error(err);
-    
-            rep.send(500);
-        };
-    });
-
     // TODO: have the verification code be able to be verified via a link.
     fastify.post("/api/v1/test/auth/verify", async (req, rep) => {
         try {   

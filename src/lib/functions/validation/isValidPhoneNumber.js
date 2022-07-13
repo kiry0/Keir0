@@ -9,9 +9,13 @@ const isValidPhoneNumber = (value, helpers) => {
         nationalNumber,
     } = value;
 
-    value.number = `+${countryCallingCode}${nationalNumber}`;
+    let phoneNumber;
 
-    const phoneNumber = value.number;
+    if(!countryCallingCode && !nationalNumber) {
+        phoneNumber = value;
+    } else {
+        phoneNumber = `+${countryCallingCode}${nationalNumber}`;
+    };    
 
     const isValidPhoneNumber = isValidNumber(phoneNumber) || isPossiblePhoneNumber(phoneNumber);
 

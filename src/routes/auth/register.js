@@ -1,4 +1,5 @@
-const { register } = require("../../schemas/auth.js");
+const joi = require("../../schemas/auth.js");
+const { parsePhoneNumber } = require("libphonenumber-js");
 
 const User = require("../../models/User.js");
 
@@ -12,16 +13,20 @@ const Nodemailer  = require("../../lib/classes/Nodemailer.js")
 function route(fastify, options, done) {
     fastify.post("/api/v1/test/auth/register", async (req, rep) => {
         try {
-            await register.validateAsync(req.body);
+            await joi.register.validateAsync(req.body);
  
             const {
                 firstName,
                 middleName,
                 lastName,
                 emailAddress,
+            } = req.body;
+
+            let { phoneNumber } = req.body;
+
+            const { 
                 username,
-                phoneNumber,
-                password 
+                password
             } = req.body;
 
             const {
@@ -29,7 +34,21 @@ function route(fastify, options, done) {
                 nationalNumber,
             } = phoneNumber;
 
-            phoneNumber.number = `+${countryCallingCode}${nationalNumber}`;
+            if(!countryCallingCode && !nationalNumber) {
+                const {
+                    countryCallingCode,
+                    nationalNumber,
+                    number
+                } = parsePhoneNumber(phoneNumber);
+
+                phoneNumber = {
+                    countryCallingCode,
+                    nationalNumber,
+                    number
+                };
+            } else {
+                phoneNumber.number = `+${countryCallingCode}${nationalNumber}`;
+            };
 
             const number = phoneNumber.number;
 
@@ -74,8 +93,8 @@ function route(fastify, options, done) {
                                              .send(err.details[0].message);
 
             if(err.name === "MongoServerError" && err.code === 11000) return rep
-                                                                          .status(409)
-                                                                          .send("A user with that emailAddress/username/phoneNumber already exists!");
+                                                                                .status(409)
+                                                                                .send("A user with that emailAddress/username/phoneNumber already exists!");
             
             console.error(err);
 
