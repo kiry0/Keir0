@@ -6,7 +6,7 @@ const bcrypt = require("bcryptjs")
     , jwt = require("jsonwebtoken");
 
 function route(fastify, options, done) {
-    fastify.post("/api/v1/test/auth/login", async (req, rep) => {
+    fastify.post("/api/v1/test/auth/logIn", async (req, rep) => {
         try {
             let { token } = req.cookies;
             
