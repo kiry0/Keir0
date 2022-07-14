@@ -4,3 +4,4 @@
 4. testing
 
 5. known bug with `verify` route, doesn't send new verification code upon error.
+refactor everything that goes in `auth` folder.
