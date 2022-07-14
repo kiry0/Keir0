@@ -15,13 +15,11 @@ class Messagebird {
         });
     };
 
-    sendVerificationCode(recipientPhoneNumber, verificationCode) {
-        return new Promise((resolve, reject) => {
-            const ORIGINATOR = "_auth.js";
-        
+    sendVerificationCode(recipients, verificationCode) {
+        return new Promise((resolve, reject) => {        
             const params = {
-                originator: ORIGINATOR,
-                recipients: recipientPhoneNumber,
+                originator: "keir0",
+                recipients,
                 body: `We need to verify your identity, this verification code will expire in 24 hours: ${verificationCode}`
             };
 

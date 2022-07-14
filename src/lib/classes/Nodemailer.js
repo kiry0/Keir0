@@ -24,12 +24,10 @@ class Nodemailer {
         };
     };
 
-    async sendVerificationCode(recipientEmailAddress, verificationCode) {
-        const ORIGINATOR_EMAIL_ADDRESS = "_auth.js@gmail.com"; // Replace with company email address.
-        
+    async sendVerificationCode(to, verificationCode) {    
         const params = {
-            from: ORIGINATOR_EMAIL_ADDRESS,
-            to: recipientEmailAddress,
+            from: "keir0@keir0.com",
+            to,
             subject: "Verify your account.",
             text: `We need to verify your identity, this verification code will expire in 24 hours: ${verificationCode}`
         };
