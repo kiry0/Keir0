@@ -58,13 +58,13 @@ const userSchema = mongoose.Schema(
                 value: {
                     type: String
                 },
-                generatedAt: {
+                createdAt: {
                     type: Date,
                     default: Date.now()
                 },
                 expiresAt: {
                     type: Date,
-                    default: new Date(new Date().setHours(new Date().getHours() + 24)).getTime() // 24HRS.
+                    default: new Date(new Date().setHours(new Date().getHours() + 24)) // 24HRS.
                 }
             }
         }

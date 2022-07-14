@@ -72,17 +72,9 @@ function route(fastify, options, done) {
                 }
             );
 
-            if(emailAddress) {
-                const nodemailer = new Nodemailer();
-                
-                await nodemailer.sendVerificationCode(emailAddress, verificationCode);
-            };
+            if(emailAddress) await Nodemailer.sendVerificationCode(emailAddress, verificationCode);
             
-            if(number) {
-                const messagebird = new Messagebird();
-
-                await messagebird.sendVerificationCode(number, verificationCode);
-            };
+            if(number) await Messagebird.sendVerificationCode(number, verificationCode);
 
             rep
                .status(201)
