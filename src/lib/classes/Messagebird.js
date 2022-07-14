@@ -34,4 +34,4 @@ class Messagebird {
     };
 };
 
-module.exports = Messagebird;
+module.exports = new Messagebird;

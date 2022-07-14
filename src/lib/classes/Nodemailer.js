@@ -44,4 +44,4 @@ class Nodemailer {
     };
 };
 
-module.exports = Nodemailer;
+module.exports = new Nodemailer;

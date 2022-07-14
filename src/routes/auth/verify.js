@@ -2,7 +2,7 @@ const joi = require("../../schemas/auth.js");
 
 const User = require("../../models/User.js");
 
-const { generateVerificationCode } = require("../../lib/functions/utils/generateVerificationCode.js");
+const generateVerificationCode = require("../../lib/functions/utils/generateVerificationCode.js");
 
 const Nodemailer  = require("../../lib/classes/Nodemailer.js")
     , Messagebird = require("../../lib/classes/Messagebird.js");
@@ -26,13 +26,8 @@ function route(fastify, options, done) {
                                                    .status(409)
                                                    .send("Your account is already verified!");
 
-            const {
-                createdAt,
-                expiresAt
-            } = user.verification.code;
-
-            if(Math.floor(Math.abs(createdAt - expiresAt) / 3.6e6) >= 24) {
-                await user.updateOne({
+            if(Math.floor(Math.abs(new Date() - user.verification.code.expiresAt) / 3.6e6) <= 0) {
+                user = await user.updateOne({
                     "verification.code.value": generateVerificationCode(),
                     createdAt: new Date(),
                     expiresAt: new Date(new Date().setHours(new Date().getHours() + 24))
@@ -60,11 +55,6 @@ function route(fastify, options, done) {
             await user.updateOne({
                 "permissionLevel": 1,
                 "verification.isVerified": true,
-                "verification.code": {
-                    value: user.verification.code.value,
-                    createdAt: new Date(),
-                    expiresAt: new Date(new Date().setHours(new Date().getHours() + 24))
-                },
                 $unset: {
                     "verification.code": ""
                 }
