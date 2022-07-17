@@ -20,11 +20,7 @@ function route(fastify, options, done) {
                 middleName,
                 lastName,
                 emailAddress,
-            } = req.body;
-
-            let { phoneNumber } = req.body;
-
-            const { 
+                phoneNumber,
                 username,
                 password
             } = req.body;
@@ -32,25 +28,8 @@ function route(fastify, options, done) {
             const {
                 countryCallingCode,
                 nationalNumber,
-            } = phoneNumber;
-
-            if(!countryCallingCode && !nationalNumber) {
-                const {
-                    countryCallingCode,
-                    nationalNumber,
-                    number
-                } = parsePhoneNumber(phoneNumber);
-
-                phoneNumber = {
-                    countryCallingCode,
-                    nationalNumber,
-                    number
-                };
-            } else {
-                phoneNumber.number = `+${countryCallingCode}${nationalNumber}`;
-            };
-
-            const number = phoneNumber.number;
+                number
+            } = parsePhoneNumber(phoneNumber);
 
             const hashedPassword = bcrypt.hashSync(password, 8)
                 , verificationCode = generateVerificationCode();
@@ -61,7 +40,11 @@ function route(fastify, options, done) {
                     middleName,
                     lastName,
                     emailAddress,
-                    phoneNumber,
+                    phoneNumber: {
+                        countryCallingCode,
+                        nationalNumber,
+                        number
+                    },
                     username,
                     password: hashedPassword,
                     verification: {
