@@ -35,9 +35,12 @@ function route(fastify, options, done) {
                     new: true
                 });
 
-                const emailAddress = user.emailAddress
-                    , phoneNumber = user.phoneNumber.number
-                    , verificationCode = user.verification.code.value;
+                const {
+                    emailAddress,
+                    phoneNumber
+                } = user;
+
+                const verificationCode = user.verificationCode.code.value;
 
                 if(!emailAddress && !phoneNumber) return rep
                                                             .status(502)
