@@ -4,19 +4,8 @@ const {
 } = require("libphonenumber-js");
 
 const isValidPhoneNumber = (value, helpers) => {
-    const {
-        countryCallingCode,
-        nationalNumber,
-    } = value;
-
-    let phoneNumber;
-
-    if(!countryCallingCode && !nationalNumber) {
-        phoneNumber = value;
-    } else {
-        phoneNumber = `+${countryCallingCode}${nationalNumber}`;
-    };    
-
+    const phoneNumber = value;
+ 
     const isValidPhoneNumber = isValidNumber(phoneNumber) || isPossiblePhoneNumber(phoneNumber);
 
     if(!isValidPhoneNumber) return helpers.error("any.custom");
