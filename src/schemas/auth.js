@@ -1,7 +1,8 @@
 const joi = require('joi');
 
 const isValidPhoneNumber = require("../lib/functions/validation/isValidPhoneNumber.js")
-    , passwordStrength = require("../lib/functions/validation/passwordStrength.js");
+    , passwordStrength = require("../lib/functions/validation/passwordStrength.js")
+    , isVerificationCodeValid = require("../lib/functions/validation/isVerificationCodeValid.js");
 
 const register = joi.object(
     {
@@ -33,7 +34,7 @@ const register = joi.object(
                                      .required()
                         })
                         .custom(isValidPhoneNumber, "phoneNumber")
-                        .messages({
+                        .message({
                             "any.custom": "Your phone number is invalid!"
                         }),
         username: joi
@@ -55,7 +56,7 @@ const register = joi.object(
                      .max(64)
                      .required()
                      .custom(passwordStrength, "password")
-                     .messages({
+                     .message({
                         "any.custom": "Your password strength is not strong enough!"
                      })
     }
@@ -75,7 +76,7 @@ const login = joi.object({
                                  .required()
                     })
                     .custom(isValidPhoneNumber, "phoneNumber")
-                    .messages({
+                    .message({
                         "any.custom": "Your phone number is invalid!"
                     }),
     username: joi
@@ -98,11 +99,13 @@ const login = joi.object({
                  .required()
 });
 
-// refactor:
 const verify = joi.object({
     verificationCode: joi
                          .string()
+                         .min(8)
+                         .max(8)
                          .required()
+                         .external(isVerificationCodeValid, "verificationCode")
 });
 
 module.exports = {
