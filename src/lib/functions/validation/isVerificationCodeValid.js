@@ -2,9 +2,9 @@ const User = require("../../../models/User.js");
 
 const JoiExternalValidationError = require("../../classes/JoiExternalValidationError.js");
 
-const isVerificationCodeValid = async (value, helpers) => {
+const isVerificationCodeValid = async (verificationCode, helpers) => {
     try {
-        const user = await User.findOne({ "verification.code.value": value });
+        const user = await User.findOne({ "verification.code.value": verificationCode });
 
         if(!user) throw new JoiExternalValidationError("Unable to verify your account! A user with that verificationCode does not exist!");
 
