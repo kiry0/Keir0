@@ -4,7 +4,7 @@ const User = require("../../models/User.js");
 
 const generateRandomString = require("../../lib/functions/utils/generateRandomString.js");
 
-const keir0 = require("../../lib/classes/Keir0.test.js");
+const keir0 = require("../../lib/classes/Keir0.js");
 
 function route(fastify, options, done) {
     fastify.post("/api/v1/test/auth/register", async (req, rep) => {
