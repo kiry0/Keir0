@@ -3,14 +3,14 @@ const {
     isPossiblePhoneNumber
 } = require("libphonenumber-js");
 
-const isValidPhoneNumber = (value, helpers) => {
+const isPhoneNumberValid = (value, helpers) => {
     const phoneNumber = value;
  
-    const isValidPhoneNumber = isValidNumber(phoneNumber) || isPossiblePhoneNumber(phoneNumber);
+    const isPhoneNumberValid = isValidNumber(phoneNumber) || isPossiblePhoneNumber(phoneNumber);
 
-    if(!isValidPhoneNumber) return helpers.error("any.custom");
+    if(!isPhoneNumberValid) return helpers.error("any.custom");
 
     return value;
 };
 
-module.exports = isValidPhoneNumber;
+module.exports = isPhoneNumberValid;
