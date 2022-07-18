@@ -2,7 +2,9 @@ const User = require("../../../models/User.js");
 
 const JoiExternalValidationError = require("../../classes/JoiExternalValidationError.js");
 
-const isVerificationCodeValid = async (verificationCode, helpers) => {
+const generateRandomString = require("../utils/generateRandomString.js");
+
+const isVerificationCodeValid = async (verificationCode) => {
     try {
         const user = await User.findOne({ "verification.code.value": verificationCode });
 
@@ -15,7 +17,13 @@ const isVerificationCodeValid = async (verificationCode, helpers) => {
 
         if(isVerificationCodeExpired(user.verification.code)) throw new JoiExternalValidationError("It looks like your verificationCode expired!");
 
-        return value;
+        const verification = {
+            code: {
+                value: generateRandomString()
+            }
+        };
+
+        return verification;
     } catch(err) {
         console.error(err);
 
