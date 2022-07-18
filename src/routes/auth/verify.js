@@ -16,12 +16,14 @@ function route(fastify, options, done) {
                 }
             });
 
+            // console.log("Joi:", (await joi.verify.validateAsync(req.body)).verificationCode)
+
             const {
                 verificationCode
             } = req.body;
 
             const user = await User.findOne({ "verificationCode.code.value": verificationCode });
-
+            console.log(verificationCode);
             if(user.isVerified === true) return rep
                                                    .status(409)
                                                    .send("Your account is already verified!");
@@ -33,8 +35,8 @@ function route(fastify, options, done) {
 
                 user = await user.updateOne({
                     "verification.code.value": newVerificationCode,
-                    createdAt: new Date(), // Date.now
-                    expiresAt: new Date(new Date().setHours(new Date().getHours() + 24)) // Date.now + HRS
+                    "verification.code.createdAt": new Date(), // Date.now
+                    "verification.code.expiresAt": new Date(new Date().setHours(new Date().getHours() + 24)) // Date.now + HRS(24)
                 });
 
                 const {

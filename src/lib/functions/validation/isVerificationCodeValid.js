@@ -11,7 +11,10 @@ async function isVerificationCodeValid(value, helpers) {
         error.statusCode = 410;
     
         if(!user) throw error;
-    
+
+        // value = "Hello, World!";
+        // console.log("verificationCode:", value);
+
         return value;
     } catch (err) {
         console.error(err);

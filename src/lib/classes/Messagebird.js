@@ -17,13 +17,11 @@ class Messagebird {
 
     sendVerificationCode(recipients, verificationCode) {
         return new Promise((resolve, reject) => {        
-            const params = {
-                originator: "keir0",
+            messagebird.messages.create({
+                originator: "Keir0",
                 recipients,
                 body: `We need to verify your identity, this verification code will expire in 24 hours: ${verificationCode}`
-            };
-
-            messagebird.messages.create(params, (error, response) => {
+            }, (error, response) => {
                 if(error) return reject(error);
 
                 resolve(response);

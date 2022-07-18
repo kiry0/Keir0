@@ -1,0 +1,23 @@
+.container {
+    width: 1080px;
+    max-width: 100%;
+    height: 100%;
+    margin: 0 auto;
+}
+
+.hero {
+    text-align: center;
+}
+
+.modal {
+    margin: 0 auto;
+    text-align: center;
+    width: 80%;
+    height: 320px;
+    color: white;
+    background-color: blue;
+}
+
+.modal > form{
+    margin-top: 50px;
+}

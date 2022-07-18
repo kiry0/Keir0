@@ -14,7 +14,7 @@ class Nodemailer {
         );
     };
 
-    async sendMail(params) {
+    async sendEmail(params) {
         try {
             await this.transporter.sendMail(params);
         } catch(error) {
@@ -25,15 +25,13 @@ class Nodemailer {
     };
 
     async sendVerificationCode(to, verificationCode) {    
-        const params = {
-            from: "keir0@keir0.com",
-            to,
-            subject: "Verify your account.",
-            text: `We need to verify your identity, this verification code will expire in 24 hours: ${verificationCode}`
-        };
-
         try {
-            await this.transporter.sendMail(params);
+            await this.transporter.sendMail({
+                from: "Keir0@keir0.com",
+                to,
+                subject: "Verify your account.",
+                text: `We need to verify your account, this verification code will expire in 24 hours: ${verificationCode}`
+            });
         } catch(error) {
             if(error) console.error(error);
 
