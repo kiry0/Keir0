@@ -1,11 +1,8 @@
-"use strict";   
+const mongoose = require("mongoose");
 
-const mongoose = require("mongoose")
-    , fastify = require("fastify")(
-        { 
-            logger: true 
-        }
-    );
+const fastify = require("fastify")({
+    logger: true
+});
 
 class Server {
     constructor({
@@ -14,35 +11,57 @@ class Server {
         this.mongodbURI = mongodbURI;
     };
 
-    start() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                console.log('Attempting to connect to MongoDB.....');
+    async start() {
+        try {
+            console.log("Attempting to connect to MongoDB.....");
 
-                await mongoose.connect(this.mongodbURI, {
-                    useNewUrlParser: true,
-                    useUnifiedTopology: true
-                });
+            await mongoose.connect(this.mongodbURI, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true
+            });
 
-                console.log('Successfully connected to MongoDB!');
+            console.log("Successfully connected to MongoDB!");
+        } catch(err) {
+            console.error(`An error has occured while attempting to connect to MongoDB! => ${err}`);
+        };
 
-                console.log('Attempting to start the server.....');
-                
-                require("../config/plugins.js")(fastify);
+        try {
+            console.log("Attempting to start the server.....");
+
+            console.log("Loading fastify plugins.....");
+
+            // Default fastify plugins.
+            const cookie = require("@fastify/cookie");
+
+            fastify
+                   .register(cookie, {
+                       secret: process.env.TOKEN_KEY,
+                       httpOnly: false
+                   });
             
-                require("../config/routes.js")(fastify);
-    
-                await fastify.listen({
-                    port: process.env.FASTIFY_SERVER_PORT || 3000
-                });
-    
-                console.log('Successfully started the server!');
+            // Custom fastify plugins, currently not in use.
+            // require("../../plugins")(fastify);
 
-                resolve("Everything booted up smoothly you're good to go!");
-            } catch(error) {
-                if(error) reject(error);
-            };
-        });
+            console.log("Successfully loaded fastify plugins!");
+
+            // Routes
+            // Auth:
+            console.log("Loading routes.....");
+
+            require("../../routes/auth.js")(fastify);
+
+            console.log("Successfully loaded routes!");
+
+            console.log("Attempting to start the server now.....");
+
+            fastify.listen({
+                port: process.env.FASTIFY_SERVER_PORT || 3000
+            });
+
+            console.log("Successfully started the server!");
+        } catch(err) {
+            console.error(`An error has occured while attempting to start the server! => ${err}`);
+        };
     };
 
     stop() {
