@@ -11,6 +11,4 @@ const server = new Server({
 });
 
 server
-      .start()
-      .then(res => console.log(res))
-      .catch(err => console.error(err));
+      .start();
