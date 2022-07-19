@@ -4,58 +4,97 @@ const User = require("../../models/User.js");
 
 const generateRandomString = require("../../lib/functions/utils/generateRandomString.js");
 
-const keir0 = require("../../lib/classes/Keir0.js");
+const Service = require("../../lib/classes/Service.js");
 
 function route(fastify, options, done) {
-    fastify.post("/api/v1/test/auth/register", async (req, rep) => {
+    fastify.post("/api/v1/auth/register", async (req, rep) => {
+        try {
+            req.body = await registerSchema.validateAsync(req.body);
+        } catch (error) {
+            if(error) {
+                // Emit an error event.
+                console.error(error);
+
+                if(error.isJoi === true) return rep
+                                                   .status(422)
+                                                   .send(error.details);
+
+                return rep
+                          .status(500)
+                          .send(error);
+            };
+        };
+        
         try {
             const {
-                firstName,
-                middleName,
-                lastName,
                 emailAddress,
-                phoneNumber,
-                username,
-                password
-            } = await registerSchema.validateAsync(req.body);
+                phoneNumber: { number } = {},
+                username
+            } = req.body;
 
-            const user = await User.create(
-                {
-                    firstName,
-                    middleName,
-                    lastName,
-                    emailAddress,
-                    phoneNumber,
-                    username,
-                    password,
-                    verification: {
-                        code: {
-                            value: generateRandomString()
-                        }
-                    }
-                }
-            );
+            const user = await User.findOne({
+                $or: [{ emailAddress }, { "phoneNumber.number": number }, { username }]
+            });
 
-            keir0.emit("userRegister", user);
+            const arr = [];
 
-            rep
-               .status(201)
-               .send(user);
-        } catch(err) {
+            if(user?.emailAddress === emailAddress) arr.push({
+                message: "{ emailAddress } is already taken!"
+            });
+
+            if(user?.phoneNumber.number === number) arr.push({
+                message: "{ phoneNumber } is already taken!"
+            });
+
+            if(user?.username === username) arr.push({
+                message: "{ username } is already taken!"
+            });
+
+            if(arr.length >= 1) return rep
+                                           .status(409)
+                                           .send(arr);
+        } catch(error) {
             // Emit an error event.
-            console.error(err);
-            /* */
-            if(err.isJoi === true) return rep
-                                             .status(422)
-                                             .send(err.details[0]);
+            console.error(error);
 
-            if(err.name === "MongoServerError" && err.code === 11000) return rep
-                                                                                .status(409)
-                                                                                .send("A user with that emailAddress/username/phoneNumber already exists!");
+            if(error.isJoi === true) return rep
+                                               .status(422)
+                                               .send(error.message);
 
-            rep
-               .status(500)
-               .send(err);
+            return rep
+                      .status(500)
+                      .send(error);
+        };
+        
+        try {
+            req.body.verification = {
+                code: {
+                    value: generateRandomString()
+                }
+            };
+
+            req.local = {
+                user: req.body
+            };
+
+            await User.create(req.local.user);
+
+            Service.emit("userRegister", req.local.user);
+
+            return rep
+                      .status(200)
+                      .send(req.local.user);
+        } catch(error) {
+            // Emit an error event.
+            console.error(error);
+
+            if(error.name === "MongoServerError") return rep
+                                                            .status(503)
+                                                            .send(error);
+                                        
+            return rep
+                      .status(500)
+                      .send(error);
         };
     });
 

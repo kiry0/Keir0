@@ -12,31 +12,24 @@ const userSchema = mongoose.Schema(
             type: String
         },
         emailAddress: {
-            type: String,
-            unique: true
+            type: String
         },
         phoneNumber: {
             countryCallingCode: {
-                type: Number,
+                type: String,
             },
             nationalNumber: {
-                type: Number
+                type: String
             },
             number: {
-                type: String,
-                unique: true
+                type: String
             }
         },
         username: {
-            type: String,
-            unique: true
+            type: String
         },
         password: {
             type: String
-        },
-        permissionLevel: {
-            type: Number,
-            default: 0
         },
         authorization: {
             permissionLevel: {

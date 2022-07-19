@@ -9,11 +9,17 @@ const isPhoneNumberValid = (phoneNumber, helpers) => {
 
     if(!isPhoneNumberValid) return helpers.error("any.custom");
 
-    phoneNumber = {
+    const {
         countryCallingCode,
         nationalNumber,
         number
     } = parsePhoneNumber(phoneNumber);
+
+    phoneNumber = {
+        countryCallingCode,
+        nationalNumber,
+        number
+    };
 
     return phoneNumber;
 };
