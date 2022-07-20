@@ -9,7 +9,7 @@ const Service = require("../../lib/classes/Service.js");
 function route(fastify, options, done) {
     fastify.post("/api/v1/auth/register", async (req, rep) => {
         try {
-            req.body = await registerSchema.validateAsync(req.body);
+            req.local = { user: await registerSchema.validateAsync(req.body) };
         } catch (error) {
             if(error) {
                 // Emit an error event.
@@ -30,25 +30,23 @@ function route(fastify, options, done) {
                 emailAddress,
                 phoneNumber: { number } = {},
                 username
-            } = req.body;
+            } = req.local.user;
 
             const user = await User.findOne({
-                $or: [{ emailAddress }, { "phoneNumber.number": number }, { username }]
+                $or: [
+                    { emailAddress },
+                    { "phoneNumber.number": number },
+                    { username }
+                ]
             });
 
             const arr = [];
 
-            if(user?.emailAddress === emailAddress) arr.push({
-                message: "{ emailAddress } is already taken!"
-            });
+            if(user?.emailAddress === emailAddress) arr.push({ message: "{ emailAddress } is already taken!" });
 
-            if(user?.phoneNumber.number === number) arr.push({
-                message: "{ phoneNumber } is already taken!"
-            });
+            if(user?.phoneNumber.number === number) arr.push({ message: "{ phoneNumber } is already taken!" });
 
-            if(user?.username === username) arr.push({
-                message: "{ username } is already taken!"
-            });
+            if(user?.username === username) arr.push({ message: "{ username } is already taken!" });
 
             if(arr.length >= 1) return rep
                                            .status(409)
@@ -67,14 +65,10 @@ function route(fastify, options, done) {
         };
         
         try {
-            req.body.verification = {
+            req.local.user.verification = {
                 code: {
                     value: generateRandomString()
                 }
-            };
-
-            req.local = {
-                user: req.body
             };
 
             await User.create(req.local.user);
