@@ -9,7 +9,7 @@ const Service = require("../../lib/classes/Service.js");
 function route(fastify, options, done) {
     fastify.post("/api/v1/auth/register", async (req, rep) => {
         try {
-            req.local = { user: await registerSchema.validateAsync(req.body) };
+            req.local = { body: await registerSchema.validateAsync(req.body) };
         } catch (error) {
             if(error) {
                 // Emit an error event.
@@ -30,7 +30,7 @@ function route(fastify, options, done) {
                 emailAddress,
                 phoneNumber: { number } = {},
                 username
-            } = req.local.user;
+            } = req.local.body;
 
             const user = await User.findOne({
                 $or: [
@@ -40,17 +40,17 @@ function route(fastify, options, done) {
                 ]
             });
 
-            const arr = [];
+            req.local.errors = [];
 
-            if(user?.emailAddress === emailAddress) arr.push({ message: "{ emailAddress } is already taken!" });
+            if(user?.emailAddress === emailAddress) req.local.errors.push({ message: "{ emailAddress } is already taken!" });
 
-            if(user?.phoneNumber.number === number) arr.push({ message: "{ phoneNumber } is already taken!" });
+            if(user?.phoneNumber.number === number) req.local.errors.push({ message: "{ phoneNumber } is already taken!" });
 
-            if(user?.username === username) arr.push({ message: "{ username } is already taken!" });
+            if(user?.username === username) req.local.errors.push({ message: "{ username } is already taken!" });
 
-            if(arr.length >= 1) return rep
+            if(req.local.errors.length >= 1) return rep
                                            .status(409)
-                                           .send(arr);
+                                           .send(req.local.errors);
         } catch(error) {
             // Emit an error event.
             console.error(error);
@@ -65,19 +65,19 @@ function route(fastify, options, done) {
         };
         
         try {
-            req.local.user.verification = {
+            req.local.body.verification = {
                 code: {
                     value: generateRandomString()
                 }
             };
 
-            await User.create(req.local.user);
+            const user = await User.create(req.local.body);
 
-            Service.emit("userRegister", req.local.user);
+            Service.emit("userRegister", user);
 
             return rep
                       .status(200)
-                      .send(req.local.user);
+                      .send(user);
         } catch(error) {
             // Emit an error event.
             console.error(error);
