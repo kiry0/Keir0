@@ -1,5 +1,7 @@
 const registerSchema = require("../../schemas/auth/register.js");
 
+const doesUserExist = require("../../lib/functions/utils/doesUserExist.js");
+
 const User = require("../../models/User.js");
 
 const generateRandomString = require("../../lib/functions/utils/generateRandomString.js");
@@ -30,33 +32,17 @@ function route(fastify, options, done) {
                 username
             } = req.local.body;
 
-            const user = await User.findOne({
-                $or: [
-                    { emailAddress },
-                    { "phoneNumber.number": number },
-                    { username }
-                ]
-            });
-
-            req.local.errors = [];
-
-            if(user?.emailAddress === emailAddress) req.local.errors.push({ message: "{ emailAddress } is already taken!" });
-
-            if(user?.phoneNumber.number === number) req.local.errors.push({ message: "{ phoneNumber } is already taken!" });
-
-            if(user?.username === username) req.local.errors.push({ message: "{ username } is already taken!" });
-
-            if(req.local.errors.length >= 1) return rep
-                                                       .status(409)
-                                                       .send(req.local.errors);
+            await doesUserExist({ emailAddress }, { "phoneNumber.number": number }, { username });
         } catch(error) {
             // Emit an error event.
-            console.error(error);
-
             if(error.isJoi === true) return rep
                                                .status(422)
                                                .send(error.message);
 
+            if(error.name === "APIError") return rep
+                                                    .status(error.statusCode)
+                                                    .send(error.message);
+                                                    
             return rep
                       .status(500)
                       .send(error);
