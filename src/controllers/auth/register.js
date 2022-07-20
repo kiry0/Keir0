@@ -47,8 +47,8 @@ function route(fastify, options, done) {
             if(user?.username === username) req.local.errors.push({ message: "{ username } is already taken!" });
 
             if(req.local.errors.length >= 1) return rep
-                                           .status(409)
-                                           .send(req.local.errors);
+                                                       .status(409)
+                                                       .send(req.local.errors);
         } catch(error) {
             // Emit an error event.
             console.error(error);
