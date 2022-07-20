@@ -1,7 +1,7 @@
 const joi = require("joi");
 
-const isPhoneNumberValid = require("../lib/functions/validation/isPhoneNumberValid.js")
-    , isPasswordStrong   = require("../lib/functions/validation/isPasswordStrong.js");
+const isPhoneNumberValid = require("../../lib/functions/validation/isPhoneNumberValid.js")
+    , isPasswordStrong   = require("../../lib/functions/validation/isPasswordStrong.js");
 
 const registerSchema = joi.object({
     firstName: joi
@@ -28,8 +28,7 @@ const registerSchema = joi.object({
     phoneNumber: joi
                     .when("emailAddress", {
                         is: "",
-                        then: joi
-                                 .required()
+                        then: joi.required()
                     })
                     .custom(isPhoneNumberValid, "phoneNumber")
                     .messages({

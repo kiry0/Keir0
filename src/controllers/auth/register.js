@@ -1,10 +1,12 @@
 const registerSchema = require("../../schemas/auth/register.js");
 
-const doesUserExist = require("../../lib/functions/utils/doesUserExist.js");
+const doesUserAlreadyExist = require("../../lib/functions/utils/doesUserAlreadyExist.js");
 
-const User = require("../../models/User.js");
+const APIError = require("../../lib/classes/APIError");
 
 const generateRandomString = require("../../lib/functions/utils/generateRandomString.js");
+
+const User = require("../../models/User.js");
 
 const Service = require("../../lib/classes/Service.js");
 
@@ -32,7 +34,9 @@ function route(fastify, options, done) {
                 username
             } = req.local.body;
 
-            await doesUserExist({ emailAddress }, { "phoneNumber.number": number }, { username });
+            req.local.doesUserAlreadyExist = await doesUserAlreadyExist({ emailAddress }, { "phoneNumber.number": number }, { username });
+
+            if(req.local.doesUserAlreadyExist) throw new APIError(JSON.stringify(req.local.doesUserAlreadyExist), 409);
         } catch(error) {
             // Emit an error event.
             if(error.isJoi === true) return rep
@@ -42,7 +46,7 @@ function route(fastify, options, done) {
             if(error.name === "APIError") return rep
                                                     .status(error.statusCode)
                                                     .send(error.message);
-                                                    
+
             return rep
                       .status(500)
                       .send(error);

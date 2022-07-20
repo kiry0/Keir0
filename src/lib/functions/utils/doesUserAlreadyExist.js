@@ -1,8 +1,6 @@
 const User = require("../../../models/User.js");
 
-const APIError = require("../../classes/APIError.js");
-
-const doesUserExist = (...args) => {
+const doesUserAlreadyExist = (...args) => {
     return new Promise(async (resolve, reject) => {
         try {
             const user = await User.findOne({ $or: args });
@@ -23,11 +21,11 @@ const doesUserExist = (...args) => {
 
             if(user?.username === username) errorMessages.push({ message: "{ username } is already taken!" });
             
-            reject(new APIError(JSON.stringify(errorMessages), 409));
+            resolve(errorMessages);
         } catch(error) {
             reject(error);
         };
     });
 };
 
-module.exports = doesUserExist;
+module.exports = doesUserAlreadyExist;
