@@ -1,4 +1,4 @@
-const registerSchema = require("../../schemas/register.js");
+const registerSchema = require("../../schemas/auth/register.js");
 
 const User = require("../../models/User.js");
 
@@ -11,18 +11,16 @@ function route(fastify, options, done) {
         try {
             req.local = { body: await registerSchema.validateAsync(req.body) };
         } catch (error) {
-            if(error) {
-                // Emit an error event.
-                console.error(error);
+            // Emit an error event.
+            console.error(error);
 
-                if(error.isJoi === true) return rep
-                                                   .status(422)
-                                                   .send(error.details);
+            if(error.isJoi === true) return rep
+                                               .status(422)
+                                               .send(error.details);
 
-                return rep
-                          .status(500)
-                          .send(error);
-            };
+            return rep
+                      .status(500)
+                      .send(error);
         };
         
         try {
