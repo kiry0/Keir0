@@ -1,14 +1,11 @@
-const registerSchema = require("../../schemas/auth/register.js");
-
-const doesUserAlreadyExist = require("../../lib/functions/utils/doesUserAlreadyExist.js");
-
-const APIError = require("../../lib/classes/APIError");
-
-const generateRandomString = require("../../lib/functions/utils/generateRandomString.js");
-
-const User = require("../../models/User.js");
-
-const Service = require("../../lib/classes/Service.js");
+const registerSchema       = require("../../schemas/auth/register.js")
+    , doesUserAlreadyExist = require("../../lib/functions/utils/doesUserAlreadyExist.js")
+    , APIError             = require("../../lib/classes/APIError")
+    , generateRandomString = require("../../lib/functions/utils/generateRandomString.js")
+    , bcrypt               = require("bcryptjs")
+    , { parsePhoneNumber } = require("libphonenumber-js")
+    , User                 = require("../../models/User.js")
+    , Service              = require("../../lib/classes/Service.js");
 
 function route(fastify, options, done) {
     fastify.post("/api/v1/auth/register", async (req, rep) => {
@@ -30,13 +27,17 @@ function route(fastify, options, done) {
         try {
             const {
                 emailAddress,
-                phoneNumber: { number } = {},
+                phoneNumber,
                 username
             } = req.local.body;
 
-            req.local.doesUserAlreadyExist = await doesUserAlreadyExist({ emailAddress }, { "phoneNumber.number": number }, { username });
+            req.local.doesUserAlreadyExist = await doesUserAlreadyExist({ emailAddress }, { "phoneNumber.number": phoneNumber }, { username });
 
-            if(req.local.doesUserAlreadyExist) throw new APIError(JSON.stringify(req.local.doesUserAlreadyExist), 409);
+            if(req.local.doesUserAlreadyExist) {
+                const message = req.local.doesUserAlreadyExist.map(t => `${t} is already taken!`);
+
+                throw new APIError(JSON.stringify({ message }), 409);
+            };
         } catch(error) {
             // Emit an error event.
             if(error.isJoi === true) return rep
@@ -53,9 +54,27 @@ function route(fastify, options, done) {
         };
         
         try {
+            const {
+                countryCallingCode,
+                nationalNumber,
+                number
+            } = parsePhoneNumber(req.local.body.phoneNumber);
+
+            req.local.body.phoneNumber = {
+                countryCallingCode,
+                nationalNumber,
+                number
+            };
+
+            const hashedPassword = bcrypt.hashSync(req.local.body.password);
+
+            req.local.body.password = hashedPassword;
+
+            const randomString = generateRandomString();
+
             req.local.body.verification = {
                 code: {
-                    value: generateRandomString()
+                    value: randomString
                 }
             };
 
