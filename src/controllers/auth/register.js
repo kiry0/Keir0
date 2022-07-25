@@ -40,6 +40,8 @@ function route(fastify, options, done) {
             };
         } catch(error) {
             // Emit an error event.
+            console.error(error);
+            
             if(error.isJoi === true) return rep
                                                .status(422)
                                                .send(error.message);
