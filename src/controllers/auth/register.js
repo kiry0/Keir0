@@ -41,7 +41,7 @@ function route(fastify, options, done) {
         } catch(error) {
             // Emit an error event.
             console.error(error);
-            
+
             if(error.isJoi === true) return rep
                                                .status(422)
                                                .send(error.message);
@@ -56,27 +56,17 @@ function route(fastify, options, done) {
         };
         
         try {
-            const {
+            req.local.body.phoneNumber = {
                 countryCallingCode,
                 nationalNumber,
                 number
             } = parsePhoneNumber(req.local.body.phoneNumber);
 
-            req.local.body.phoneNumber = {
-                countryCallingCode,
-                nationalNumber,
-                number
-            };
-
-            const hashedPassword = bcrypt.hashSync(req.local.body.password);
-
-            req.local.body.password = hashedPassword;
-
-            const randomString = generateRandomString();
+            req.local.body.password = bcrypt.hashSync(req.local.body.password);
 
             req.local.body.verification = {
                 code: {
-                    value: randomString
+                    value: generateRandomString()
                 }
             };
 
