@@ -31,9 +31,11 @@ class Server {
             console.log("Loading fastify plugins.....");
 
             // Default fastify plugins.
-            const cookie = require("@fastify/cookie");
+            const cookie = require("@fastify/cookie")
+                , cors   = require("@fastify/cors");
 
             fastify
+                   .register(cors)
                    .register(cookie, {
                        secret: process.env.TOKEN_KEY,
                        httpOnly: false
