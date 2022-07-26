@@ -1,0 +1,15 @@
+1. Captcha.
+2. Rate-limiting/perms
+3. Diagnostic system
+4. testing
+
+5. refactor everything that goes in `auth` folder.
+
+: Refactor :
+controllers/auth ❌ - Do this last, this takes a long time.
+lib/classes ✔️
+functions/utils ❌
+functions/validation ❌
+models/User ❌
+
+1. Register ✔️

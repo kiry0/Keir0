@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keir | Register</title>
+</head>
+<body>
+    <div class="container">
+        <div class="form">
+            <form class="form-elements">
+                <div class="element-container">
+                    <label class='form-element_label' for="text">firstName</label>
+                    <input class='form-element_input' type="text" id="firstName" autocomplete='on'>
+
+                    <label class='form-element_label' for="text">middleName</label>
+                    <input class='form-element_input' type="text" id="middleName" autocomplete='on'>
+
+                    <label class='form-element_label' for="text">lastName</label>
+                    <input class='form-element_input' type="text" id="lastName" autocomplete='on'>
+
+                    <label class='form-element_label' for="email">emailAddress</label>
+                    <input class='form-element_input' type="email" id="emailAddress" autocomplete='on'>
+
+                    <label class='form-element_label' for="tel">phoneNumber</label>
+                    <input class='form-element_input' type="tel" id="phoneNumber" autocomplete='on'>
+
+                    <label class='form-element_label' for="text">username</label>
+                    <input class='form-element_input' type="text" id="username" autocomplete='on'>
+
+                    <label class='form-element_label' for="password">password</label>
+                    <input class='form-element_input' type="password" id="password" autocomplete='on'>
+
+                    <button id='form-element-submit' type='button'>Continue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const register = async () => {
+            const inputs = [...document.querySelectorAll(".form-element_input")].map(v => ({ id: v.id, value: v.value }));
+
+            const user = inputs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.value }), {});
+            
+            try {
+                const res = await fetch("http://localhost:3000/api/v1/auth/register", {
+                    method: "POST",
+                    body: JSON.stringify(user),
+                    mode: "cors",
+                    headers: new Headers({
+                        "Content-Type": "application/json"
+                    })
+                });
+
+                console.log(res);
+            } catch(error) {
+                console.log(error)
+            };
+        };
+
+        const btn = document.getElementById("form-element-submit");
+
+        btn.addEventListener("click", register);
+    </script>
+</body>
+</html>

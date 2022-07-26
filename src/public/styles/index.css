@@ -1,0 +1,245 @@
+* {
+    margin: 0;
+    padding: 0;
+    outline: 0;
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+    font-family: 'Poppins', sans-serif;
+}
+
+.container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.content {
+    width: 50%;
+    height: 100vh;
+    display: flex;
+    flex:  1 2;
+    flex-direction: column;
+    justify-content: center;
+}
+
+a {
+    color: #000000;
+    opacity: 0.75;
+    text-decoration: none;
+}
+
+a > span {
+    color: #1273FF;
+    font-weight: 500;
+}
+
+.header {
+    margin: 24px 24px 0 24px;
+    display: flex;
+    flex-direction: row;
+}
+
+.footer {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 20px 10px 0;
+    font-size: 16px;
+    color: #83818c;
+}
+
+.logo {
+    margin: 50px 0 0 50px;
+}
+
+.logo > img {
+    width: 150px;
+}
+
+.header-heading {
+    color: #0E1319;
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+}
+
+.form-heading {
+    font-size: 32px;
+    font-weight: 500;
+    color: #0E1319;
+}
+
+.form-desc {
+    font-size: 18px;
+}
+
+.form-element_container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+}
+
+.form-element_container__mini {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 20px 0 10px 0;
+}
+
+.form-element_checkbox__container {
+    display: flex;
+    margin-bottom: 12px;
+}
+
+.form-element_container__mini a {
+    font-size: 14px;
+    height: max-content;
+}
+
+.form-element_checkbox {
+    height: 18px;
+    width: 18px;
+    margin: auto 8px auto auto;
+}
+
+.form-element_checkbox__label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #83818c;
+    margin: auto;
+    cursor: pointer;
+}
+
+.form-element_label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #83818c;
+    margin-bottom: 4px;
+    width: max-content;
+}
+
+.form-element_input {
+    height: 54px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e1e0e7;
+    border-radius: 8px;
+}
+
+.form-element_input:focus {
+    border: 1px solid #1273FF;
+}
+
+.form-element_input::placeholder {
+    font-size: 14px;
+    color: #83818c;
+}
+
+.form-submit {
+    cursor: pointer;
+    height: 54px;
+    width: 100%;
+    background-color: #1273FF;
+    color: #FFFFFF;
+    font-size: 16px;
+    border: 0;
+    border-radius: 8px;
+}
+
+.register-with-google {
+    cursor: pointer;
+    height: 54px;
+    width: 100%;
+    color: #1273FF;
+    font-size: 16px;
+    border: 2px solid #1273FF;
+    border-radius: 8px;
+    background-color: transparent;
+}
+
+.register-with-google > img {
+    size: 25px;
+}
+
+.register-with-google > span {
+    margin-left: 5px;
+}
+
+.register-with-google > img, 
+.register-with-google > span {
+    vertical-align: middle;
+}
+
+.form-signup {
+    margin: 20px auto;
+    font-size: 14px;
+    color: #83818c;
+}
+
+.illustration {
+    width: 30%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background-color: #F3F4F8;
+}
+
+.circle {
+    height: 200px;
+    width: 200px;
+    border-radius: 100px;
+    background-color: #1273FF;
+    position: absolute;
+    bottom: calc(50% - 100px);
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.blur {
+    display: flex;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(30px);
+    height: 50%;
+    margin: auto auto 0 auto;
+    z-index: 10;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    width: auto;
+    margin: 10px 0 10px;
+}
+
+.divider::after,
+.divider::before {
+  content: "";
+  border: 0.5px solid #262626;
+  flex: 1;
+}
+
+.divider:not(:empty)::before {
+    margin-right: 0.5em;
+}
+  
+.divider:not(:empty)::after {
+    margin-left: 0.5em;
+}
+
+@media only screen and (max-width: 900px) {
+
+    .content {
+        width: 100%;
+    }
+
+    .illustration {
+        display: none;
+    }
+}
